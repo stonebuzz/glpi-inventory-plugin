@@ -150,7 +150,9 @@ class PluginGlpiinventoryCommunicationNetworkDiscovery
                             }
                             $itemtype_discovered = $refused = $inventory->getMainAsset()->getItemtype();
                             if ($itemtype_discovered == Computer::class) {
-                                $a_text[] = "<br>[info]: " . __("If a real 'computer' please install agent on it (glpiinventory plugin is not design for this) otherwise check SNMP credentials from the IP range");
+                                $a_text[] = "<br>[info]: " . __("Two reasons why the agent detects this asset as a computer :
+                                <br>&nbsp; - It's a real 'computer' please install agent on it (glpiinventory plugin is not design for this)
+                                <br>&nbsp; - GLPI Agent could not determine the type of the asset with its sysobjectID, please check SNMP credentials from the IP range");
                             }
                             $_SESSION['plugin_glpiinventory_taskjoblog']['comment'] = '==importdenied== ' . implode(", ", $a_text);
                             $this->addtaskjoblog();

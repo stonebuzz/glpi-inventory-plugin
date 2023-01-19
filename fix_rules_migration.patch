@@ -1,0 +1,24 @@
+diff --git a/install/update.native.php b/install/update.native.php
+index 945ca7528..b80b47ad4 100644
+--- a/install/update.native.php
++++ b/install/update.native.php
+@@ -542,6 +542,19 @@ function pluginGlpiinventoryUpdateNative($current_version, $migrationname = 'Mig
+         ]
+     );
+ 
++    //update _fusion action to _inventory
++    $DB->update(
++        'glpi_ruleactions',
++        [
++            'fields'  => '_inventory',
++        ],
++        [
++            'fields'  => '_fusion',
++        ]
++    );
++
++
++
+     if ($DB->tableExists('glpi_plugin_glpiinventory_rulematchedlogs')) {
+         // agents must be migrated before that one
+         $DB->queryOrDie(

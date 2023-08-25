@@ -57,6 +57,7 @@ function pluginGlpiinventoryUpdateNative($current_version, $migrationname = 'Mig
     //mappings
     $agents_mapping = [];
     $unmanageds_mapping = [];
+    $refused_mapping = [];
 
     $migration->displayMessage("Use core agent");
     if ($DB->tableExists('glpi_plugin_glpiinventory_agents')) {
@@ -496,6 +497,40 @@ function pluginGlpiinventoryUpdateNative($current_version, $migrationname = 'Mig
 
     $migration->displayMessage("Drop ignored equipments");
     if ($DB->tableExists('glpi_plugin_glpiinventory_ignoredimportdevices')) {
+
+        $iterator = $DB->request([
+            'FROM' => 'glpi_plugin_glpiinventory_ignoredimportdevices'
+        ]);
+
+        $refused = new RefusedEquipment();
+        foreach ($iterator as $data_refused) {
+            $old_id = $data_refused['id'];
+
+            $data_refused['date_creation'] = $data_refused['date'];
+            $data_refused['date_mod'] = $data_refused['date'];
+
+            //retrieve agent if possible
+            $iterator = $DB->request([
+                'SELECT' => ['id'],
+                'FROM'   => 'glpi_agents',
+                'WHERE'  => ['items_id' => $old_id],
+                'LIMIT'  => 1
+            ]);
+
+            $data = [];
+            if (count($iterator)) {
+                $data = $iterator->current();
+                $data_refused['agents_id'] = $data['id'];
+            }
+
+            unset(
+                $data_refused['id'],
+                $data_refused['date'],
+            );
+
+            $new_id = $refused->add(Toolbox::addslashes_deep($data_refused));
+            $refused_mapping[$old_id] = $new_id;
+        }
         $migration->dropTable('glpi_plugin_glpiinventory_ignoredimportdevices');
     }
 
@@ -712,6 +747,7 @@ function pluginGlpiinventoryUpdateNative($current_version, $migrationname = 'Mig
     $mappings = [
         'Agent' => $agents_mapping,
         'Unmanaged' => $unmanageds_mapping,
+        'RefusedEquipment' => $refused_mapping
     ];
 
     $types_iterator = $DB->request(
